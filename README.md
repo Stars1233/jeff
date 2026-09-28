@@ -80,18 +80,22 @@ the ideal zero-shot test, since a game's state isn't typical unstructured data; 
 test a System 1 model. Each turn, the code describes the situation and the legal moves in words, and the model picks
 one. The options state what each move leads to (Frogger: "you would be hit by a car and lose a life"; Doom: "the
 nearest monster is a little to your left"), but never which move is right. Each result is 20 episodes, seed 1234; ▶
-plays a video of the run's first episode.
+opens a video of the run's first episode.
+
+Jeff-Qwen3.5-0.8B playing, zero-shot (click a clip for the full video):
+
+<table><tr><td align="center"><a href="https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-jeff-0.8b.mp4"><img src="assets/previews/doom-jeff-0.8b.gif" width="260" alt="Jeff-Qwen3.5-0.8B playing Doom"></a><br>Doom</td><td align="center"><a href="https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-jeff-0.8b.mp4"><img src="assets/previews/frogger-jeff-0.8b.gif" width="260" alt="Jeff-Qwen3.5-0.8B playing Frogger"></a><br>Frogger</td><td align="center"><a href="https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-jeff-0.8b.mp4"><img src="assets/previews/pacman-jeff-0.8b.gif" width="260" alt="Jeff-Qwen3.5-0.8B playing Pac-Man"></a><br>Pac-Man</td></tr></table>
 
 | Model | Doom, kills (monster's direction in words) | | Frogger, crossings (consequences) | | Pac-Man, pellets of 98 (consequences) | |
 |---|---|---|---|---|---|---|
 | Random moves | −0.05 | | 0 | | 11.2 | |
-| Hand-coded rule bot | 6.55 | [▶](videos/doom-rule-bot.mp4) | 10.25 | [▶](videos/frogger-rule-bot.mp4) | 94.1 | [▶](videos/pacman-rule-bot.mp4) |
-| Qwen3.5-0.8B, untrained | 5.0 | [▶](videos/doom-untrained-0.8b.mp4) | 1.0 | [▶](videos/frogger-untrained-0.8b.mp4) | 25.8 | [▶](videos/pacman-untrained-0.8b.mp4) |
-| **Jeff-Qwen3.5-0.8B** | **6.55** | [▶](videos/doom-jeff-0.8b.mp4) | **10.3** | [▶](videos/frogger-jeff-0.8b.mp4) | **57.0** | [▶](videos/pacman-jeff-0.8b.mp4) |
-| Qwen3.5-2B, untrained | 0.55 | [▶](videos/doom-untrained-2b.mp4) | 0.05 | [▶](videos/frogger-untrained-2b.mp4) | 72.1 | [▶](videos/pacman-untrained-2b.mp4) |
-| Jeff-Qwen3.5-2B | −0.9 | [▶](videos/doom-jeff-2b.mp4) | 6.0 | [▶](videos/frogger-jeff-2b.mp4) | 41.2 | [▶](videos/pacman-jeff-2b.mp4) |
-| Gemma 4 E2B, untrained | −0.55 | [▶](videos/doom-untrained-g4.mp4) | 0 | [▶](videos/frogger-untrained-g4.mp4) | 3.2 | [▶](videos/pacman-untrained-g4.mp4) |
-| Jeff-Gemma4-E2B | 0.55 | [▶](videos/doom-jeff-g4.mp4) | 0.15 | [▶](videos/frogger-jeff-g4.mp4) | 53.2 | [▶](videos/pacman-jeff-g4.mp4) |
+| Hand-coded rule bot | 6.55 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-rule-bot.mp4) | 10.25 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-rule-bot.mp4) | 94.1 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-rule-bot.mp4) |
+| Qwen3.5-0.8B, untrained | 5.0 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-untrained-0.8b.mp4) | 1.0 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-untrained-0.8b.mp4) | 25.8 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-untrained-0.8b.mp4) |
+| **Jeff-Qwen3.5-0.8B** | **6.55** | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-jeff-0.8b.mp4) | **10.3** | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-jeff-0.8b.mp4) | **57.0** | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-jeff-0.8b.mp4) |
+| Qwen3.5-2B, untrained | 0.55 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-untrained-2b.mp4) | 0.05 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-untrained-2b.mp4) | 72.1 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-untrained-2b.mp4) |
+| Jeff-Qwen3.5-2B | −0.9 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-jeff-2b.mp4) | 6.0 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-jeff-2b.mp4) | 41.2 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-jeff-2b.mp4) |
+| Gemma 4 E2B, untrained | −0.55 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-untrained-g4.mp4) | 0 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-untrained-g4.mp4) | 3.2 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-untrained-g4.mp4) |
+| Jeff-Gemma4-E2B | 0.55 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/doom-jeff-g4.mp4) | 0.15 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/frogger-jeff-g4.mp4) | 53.2 | [▶](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B/blob/main/videos/pacman-jeff-g4.mp4) |
 | Jev (published, Doom) | 6.55, told the aiming rule; −0.60 without it | | — | | — | |
 
 Jeff-0.8B decides in 29–49 ms per move on an M4 Max; Jev's published Doom run took 212 ms per call over its API. The
