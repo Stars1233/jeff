@@ -1,0 +1,7 @@
+# Preserve recorded SVG bytes and exact trained-source checksums.
+assets/selected-accuracy.svg whitespace=-blank-at-eol
+assets/selected-calibration.svg whitespace=-blank-at-eol
+assets/training-progress.svg whitespace=-blank-at-eol
+src/autojev/__init__.py whitespace=-blank-at-eof
+src/autojev/events.py whitespace=-blank-at-eof
+src/autojev/types.py whitespace=-blank-at-eof
