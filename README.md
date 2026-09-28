@@ -57,6 +57,8 @@ Several independent questions in one request are answered together.
 
 4,599 questions from five public benchmarks, plus JevBench's public hard tier (105 items, scored separately):
 
+![Accuracy of Jeff-Qwen3.5-0.8B, Jeff-Qwen3.5-2B and Jeff-Gemma4-E2B against Jev's published figures, per benchmark](assets/benchmarks.png)
+
 | Benchmark | Qwen3.5-0.8B untrained | Jeff-Qwen3.5-0.8B | Qwen3.5-2B untrained | Jeff-Qwen3.5-2B | Gemma 4 E2B untrained | Jeff-Gemma4-E2B | Jev (published) | AutoJev-27B (published) |
 |---|---|---|---|---|---|---|---|---|
 | **Overall (5 benchmarks)** | 45.3 | 79.1 | 46.5 | **83.1** | 62.5 | 81.6 | 83.0 | ***84.9*** |
