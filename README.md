@@ -1,6 +1,6 @@
 # Jeff
 
-**Fine-tunes of Qwen3.5 (and Gemma 4) for zero-shot classification: small, fast decision models you slot into your
+**Fine-tunes of Qwen3.5 and Gemma 4 for zero-shot classification: small, fast decision models you slot into your
 code, with the same request format as Jev.** You describe a situation and list the options in plain words; Jeff returns a
 calibrated probability for each option from a single forward pass. No generated text, no parsing: about **22 ms** per
 decision on an RTX PRO 6000 and **28 ms** on an Apple M4 Max (MLX).
@@ -8,19 +8,19 @@ decision on an RTX PRO 6000 and **28 ms** on an Apple M4 Max (MLX).
 Zero-shot means the options can be anything: support queues, user intents, moderation labels, voice commands, game
 moves. Your categories don't need to appear in the training data; you describe them, and Jeff picks.
 
-> **What it is, and what it isn't.** These are very small models. They make extremely fast, well-calibrated judgement
-> calls between options, and they slot easily into your local code. On benchmarks they approach, and sometimes beat, Jev;
-> but at this size their reasoning won't match Jev's, which runs on a much larger model. If zero-shot accuracy isn't
-> good enough for your purposes, a short fine-tune on your own examples takes you much further: our
-> voice-navigation fine-tune moved held-out accuracy from 31.7% to 95.8% in under half an hour on one GPU.
+**What it is, and what it isn't.** These are very small models. They make extremely fast, well-calibrated judgement
+calls between options, and they slot easily into your local code. On benchmarks they approach, and sometimes beat, Jev;
+but at this size their reasoning won't match Jev's, which runs on a much larger model. If zero-shot accuracy isn't
+good enough for your purposes, a short fine-tune on your own examples takes you much further: our
+voice-navigation fine-tune moved held-out accuracy from 31.7% to 95.8% in under half an hour on one GPU.
 
-> **Built entirely on local hardware.** Training on one RTX PRO 6000 workstation GPU (the 0.8B trains in about 2 hours,
-> the 2B in about 3.5), all synthetic training data written by an open model (Qwen3.8-Flash-Next) on two DGX Sparks,
-> testing on a MacBook. No cloud GPUs, and no closed-model output in the training data; a closed model was used only to
-> spot-check the quality of a sample of the synthetic data.
+**Built entirely on local hardware.** Training on one RTX PRO 6000 workstation GPU (the 0.8B trains in about 2 hours,
+the 2B in about 3.5), all synthetic training data written by an open model (Qwen3.8-Flash-Next) on two DGX Sparks,
+testing on a MacBook. No cloud GPUs, and no closed-model output in the training data; a closed model was used only to
+spot-check the quality of a sample of the synthetic data.
 
-> **Independent project.** Jeff uses the same request format as Jev, but it is not affiliated with or endorsed by TypeSafe, the
-> makers of Jev. Our training code starts from the open-source [AutoJev](https://github.com/denis-pplx/autojev) recipe.
+**Independent project.** Jeff uses the same request format as Jev, but it is not affiliated with or endorsed by TypeSafe, the
+makers of Jev. Our training code starts from the open-source [AutoJev](https://github.com/denis-pplx/autojev) recipe.
 
 **Models on Hugging Face:** [Jeff-Qwen3.5-0.8B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B) · [Jeff-Qwen3.5-2B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-2B) · [Jeff-Gemma4-E2B](https://huggingface.co/mstrasser/Jeff-Gemma4-E2B)
 
