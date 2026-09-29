@@ -26,15 +26,19 @@ makers of Jev. Our training code starts from the open-source [AutoJev](https://g
 
 ## Quick start
 
+To serve a model you only need the serving install (`--no-default-groups` leaves out the training, data and
+evaluation packages; plain `uv sync` installs everything):
+
 ```bash
-uv sync
-uv run hf download mstrasser/Jeff-Qwen3.5-0.8B --local-dir checkpoints/jeff-0.8b
+uv sync --no-default-groups                 # CPU
+uv sync --no-default-groups --extra cuda    # NVIDIA GPU: adds the fast kernels (much slower without them)
+uv sync --no-default-groups --extra mac     # Apple silicon: adds MLX
+uv run --no-default-groups hf download mstrasser/Jeff-Qwen3.5-0.8B --local-dir checkpoints/jeff-0.8b
 
 # NVIDIA GPU or CPU (PyTorch)
-JEFF_CHECKPOINT=checkpoints/jeff-0.8b PORT=8765 uv run jeff-serve
+JEFF_CHECKPOINT=checkpoints/jeff-0.8b PORT=8765 uv run --no-default-groups jeff-serve
 # Apple silicon (MLX, much faster on a Mac; Qwen models only)
-uv sync --extra mac
-JEFF_BACKEND=mlx JEFF_CHECKPOINT=checkpoints/jeff-0.8b PORT=8765 uv run jeff-serve
+JEFF_BACKEND=mlx JEFF_CHECKPOINT=checkpoints/jeff-0.8b PORT=8765 uv run --no-default-groups --extra mac jeff-serve
 ```
 
 ```bash
