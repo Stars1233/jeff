@@ -355,9 +355,9 @@ def selection_gate(calibrated: Metrics, reference: Metrics | None) -> bool:
 
 
 def save_selected(model: DecisionModel, root: Path, temperature: float, step: int, provenance: dict[str, str],
-                  initial_artifact: dict[str, JSONValue] | None = None,
+                  max_options: int, initial_artifact: dict[str, JSONValue] | None = None,
                   training_schedule: dict[str, JSONValue] | None = None) -> None:
-    save_checkpoint(model, root, temperature, step, provenance, initial_artifact, training_schedule)
+    save_checkpoint(model, root, temperature, step, provenance, max_options, initial_artifact, training_schedule)
     select_checkpoint(root, step)
 
 
@@ -371,10 +371,12 @@ def point(root: Path, name: str, step: int) -> None:
 
 
 def save_checkpoint(model: DecisionModel, root: Path, temperature: float, step: int, provenance: dict[str, str],
-                    initial_artifact: dict[str, JSONValue] | None = None,
+                    max_options: int, initial_artifact: dict[str, JSONValue] | None = None,
                     training_schedule: dict[str, JSONValue] | None = None) -> None:
+    """`max_options`: the most options any training question had. The server refuses larger questions, because the
+    model never learned to pick answer codes beyond that."""
     destination = root / f"step-{step:05d}"
-    metadata: dict[str, JSONValue] = {"step": step, "provenance": cast(JSONValue, provenance)}
+    metadata: dict[str, JSONValue] = {"step": step, "provenance": cast(JSONValue, provenance), "max_options": max_options}
     if initial_artifact is not None:
         metadata["initial_artifact"] = initial_artifact
     if training_schedule is not None:
@@ -479,6 +481,9 @@ def main() -> None:
     development, temperature_rows = (read_rows(Path(path)) for path in (args.development, args.temperature))
     if (not train and not args.schedule) or not development or not temperature_rows:
         raise ValueError("Training, development and temperature folds must be nonempty")
+    if args.schedule:
+        raise ValueError("--schedule runs cannot record max_options (the largest trained question) yet; train from --train")
+    max_options = max(len(options(row["question"])) for row in train)
     if any((args.quick_development, args.quick_guard_data, args.quick_temperature)) and not args.reference:
         raise ValueError("Quick evaluation compares against the reference and needs --reference")
     reference_predictions = read_predictions(Path(args.reference)) if args.reference else []
@@ -643,7 +648,7 @@ def main() -> None:
             best is None or selection_key(raw, calibrated, step) < selection_key(cast(Metrics, best_raw), best, cast(int, best_step)))
         if improved:
             save_selected(model, output, fitted, step, {"run": run.name, "git_commit": revision, **hashes, **code_hashes},
-                          initial_artifact, scheduled.snapshot(examples_seen) if scheduled else None)
+                          max_options, initial_artifact, scheduled.snapshot(examples_seen) if scheduled else None)
             best, best_raw, best_guard, best_step, selected_temperature = calibrated, raw, guard_calibrated, step, fitted
         save_predictions(run / f"development-{step:05d}.jsonl", fitted_predictions)
         save_predictions(run / f"temperature-{step:05d}.jsonl", evaluate_logits(temperature_rows, temperature_logits, fitted))
@@ -773,7 +778,7 @@ def main() -> None:
         # Keep the last model too, so the selected checkpoint can be compared with where training ended.
         if best_step != step:
             save_checkpoint(model, output, cast(float, last_temperature), step,
-                            {"run": run.name, "git_commit": revision, **hashes, **code_hashes}, initial_artifact,
+                            {"run": run.name, "git_commit": revision, **hashes, **code_hashes}, max_options, initial_artifact,
                             scheduled.snapshot(examples_seen) if scheduled else None)
         point(output, "final", step)
         record("final_checkpoint_saved", run=run.name, step=step, selected_step=best_step)

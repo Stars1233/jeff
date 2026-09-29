@@ -495,7 +495,10 @@ document.addEventListener("mousemove", event => {
 function renderGeneration(gen) {
   const runs = Object.entries(gen);
   if (!runs.length) { $("generation").innerHTML = '<div class="empty">No generation runs yet.</div>'; return false; }
-  const [name, g] = runs.reduce((a, b) => ((a[1].started || "") > (b[1].started || "") ? a : b));
+  // Show the run with the most recent result. Snapshot folders copy the live run's run.json, so its start time alone
+  // cannot tell a snapshot from the live run.
+  const key = ([, g]) => `${g.updated || ""}|${g.started || ""}`;
+  const [name, g] = runs.reduce((a, b) => (key(a) >= key(b) ? a : b));
   if (g.error) { $("generation").innerHTML = `<div class="title-row"><span class="name">${esc(name)}</span></div>${errorBlock(g.error)}`; return false; }
   const running = !!g.updated && (Date.now() - new Date(g.updated)) < 15 * 60 * 1000;  // a result in the last 15 minutes
   const families = Object.entries(g.by_family).map(([f, reasons]) => {

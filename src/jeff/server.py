@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import binascii
 import hmac
+import json
 import os
 import threading
 import time
@@ -42,6 +43,7 @@ class Service:
     name: str = DEFAULT_MODEL
     checkpoint: str = "checkpoints/selected"
     release_date: str = ""
+    max_options: int = 0  # the most options the model was trained on; set from decision_config.json
     lock: LockType = field(default_factory=threading.Lock)
 
 
@@ -114,6 +116,24 @@ def authenticate(authorization: str | None = Header(default=None)) -> None:
         raise HTTPException(401, "Missing or invalid API key.", headers={"WWW-Authenticate": "Bearer"})
 
 
+def max_options(config: dict[str, JSONValue], path: Path) -> int:
+    """The largest number of options the checkpoint can answer: the most its training questions had. Answer codes past
+    that (for example AA, AB, ... after Z) were never trained, so the model would silently never pick those options."""
+    value = config.get("max_options")
+    if not isinstance(value, int) or isinstance(value, bool) or value < 2:
+        raise ValueError(f"{path} needs \"max_options\": the largest number of options the model was trained on "
+                         "(the trainer writes it; the Jeff models released on 2026-09-28 handle 26).")
+    return value
+
+
+def check_option_counts(body: EvaluationRequest) -> None:
+    for key, question in body.questions.items():
+        count = len(question.criteria) if isinstance(question, Choice) else 0
+        if count > service.max_options:
+            raise HTTPException(422, f"Question {key!r} has {count} options, but this model handles at most "
+                                     f"{service.max_options}. Shortlist the options first, or split the question.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from jeff.model import DecisionModel
@@ -130,7 +150,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     else:
         raise ValueError(f"JEFF_BACKEND={backend!r}; use pytorch or mlx")
     service.name = f"jeff-{service.model.base_model.rsplit('/', 1)[-1].lower()}"
-    modified = (Path(service.checkpoint) / "decision_config.json").stat().st_mtime
+    config_path = Path(service.checkpoint) / "decision_config.json"
+    service.max_options = max_options(json.loads(config_path.read_text()), config_path)
+    modified = config_path.stat().st_mtime
     service.release_date = datetime.fromtimestamp(modified, timezone.utc).date().isoformat()
     try:
         yield
@@ -166,7 +188,8 @@ def playground() -> str:
 @app.get("/health", response_model=None)
 def health() -> dict[str, JSONValue]:
     return {"status": "ready" if service.model is not None else "loading", "model": service.name,
-            "checkpoint": service.checkpoint, "authentication": bool(os.getenv("JEFF_API_KEY")),
+            "checkpoint": service.checkpoint, "max_options": service.max_options,
+            "authentication": bool(os.getenv("JEFF_API_KEY")),
             "modalities": ["text"] if getattr(service.model, "backend", None) == "mlx" else ["text", "image"]}
 
 
@@ -209,6 +232,7 @@ async def system_one(body: EvaluationRequest) -> DecisionResponse:
     model = service.model
     if model is None:
         raise HTTPException(503, "The model is not ready.")
+    check_option_counts(body)
     if not service.lock.acquire(blocking=False):
         raise HTTPException(529, "The model is busy. Retry shortly.", headers={"Retry-After": "1"})
     try:

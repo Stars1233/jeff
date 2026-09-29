@@ -50,7 +50,7 @@ curl -s localhost:8765/v1/systemone -H 'content-type: application/json' -d '{
 ```
 
 Each answer has a probability per option, the chosen option and a confidence. Three question types: `choice` (pick one
-of up to 255 options), `noul` (yes/no, returned as a probability) and `score` (a point on a scale you describe).
+of up to 26 options with the released models; see Caveats), `noul` (yes/no, returned as a probability) and `score` (a point on a scale you describe).
 Several independent questions in one request are answered together.
 
 ## Benchmarks
@@ -154,6 +154,12 @@ item is ever trained on).
 
 ## Caveats
 
+- **At most 26 options per question, for now.** Options are coded A–Z, then AA, AB, and so on. The largest
+  training question had 19 options, so the released models never learned to pick a two-letter code: an option
+  in position 27 or later is effectively never chosen, whatever it says. The server therefore refuses questions
+  with more than 26 options; shortlist longer lists first. Within 26, Jeff-Qwen3.5-0.8B picked the right city
+  every time in our list-lookup check (10, 19 and 26 options), while Jeff-Gemma4-E2B managed 70%, 62% and 55%.
+  Retrained models that handle up to 255 options are in progress. Thanks to @puhuk for the report ([#1](https://github.com/firelex/jeff/issues/1)).
 - **Small models don't reason.** Expect fast, calibrated choices between the options you describe, not multi-step
   reasoning. At 0.8B–2B parameters this holds for every model, not just Jeff.
 - **Jeff-2B is a weaker game player than Jeff-0.8B.** The untrained 2B already appears more risk-averse than the
