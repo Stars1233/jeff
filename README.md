@@ -1,5 +1,10 @@
 # Jeff
 
+> **New: v1.1 (29 September 2026).** Jeff-Qwen3.5-0.8B and Jeff-Qwen3.5-2B now choose among up to **254 options**
+> (v1.0: 26), with better calibration. On our long-list test the 0.8B goes from 40% to 95%. The 2B's benchmark score
+> dips from 83.1% to 82.0%. Details in the [changelog](#changelog); v1.0 stays available on Hugging Face as
+> revision `v1.0`.
+
 **Fine-tunes of Qwen3.5 and Gemma 4 for zero-shot classification: small, fast decision models you slot into your
 code, with the same request format as Jev.** You describe a situation and list the options in plain words; Jeff returns a
 calibrated probability for each option from a single forward pass. No generated text, no parsing: about **22 ms** per
@@ -54,7 +59,7 @@ curl -s localhost:8765/v1/systemone -H 'content-type: application/json' -d '{
 ```
 
 Each answer has a probability per option, the chosen option and a confidence. Three question types: `choice` (pick one
-of up to 26 options with the released models; see Caveats), `noul` (yes/no, returned as a probability) and `score` (a point on a scale you describe).
+of up to 254 options with the v1.1 Qwen models, 26 with Jeff-Gemma4-E2B), `noul` (yes/no, returned as a probability) and `score` (a point on a scale you describe).
 Several independent questions in one request are answered together.
 
 ## Benchmarks
@@ -65,21 +70,23 @@ Several independent questions in one request are answered together.
 
 | Benchmark | Qwen3.5-0.8B untrained | Jeff-Qwen3.5-0.8B | Qwen3.5-2B untrained | Jeff-Qwen3.5-2B | Gemma 4 E2B untrained | Jeff-Gemma4-E2B | Jev (published) | AutoJev-27B (published) |
 |---|---|---|---|---|---|---|---|---|
-| **Overall (5 benchmarks)** | 45.3 | 79.1 | 46.5 | **83.1** | 62.5 | 81.6 | 83.0 | ***84.9*** |
-| BBH | 39.5 | 64.0 | 46.0 | 68.0 | 51.3 | 66.4 | **94.3** | 82.8 |
-| Financial PhraseBank | 36.0 | **96.4** | 53.4 | **96.3** | 86.0 | **96.1** | 77.0 | 84.2 |
-| JudgeBench | 56.6 | 62.6 | 57.4 | 64.6 | 46.9 | 60.6 | **78.6** | ***78.9*** |
-| RAGTruth | 49.1 | **86.1** | 35.9 | **88.9** | 63.8 | **87.4** | 77.3 | ***88.9*** |
-| WinoGrande | 49.2 | 68.6 | 52.2 | 79.0 | 51.0 | 77.4 | **90.7** | 83.3 |
-| JevBench hard (separate) | 36.2 | 47.6 | 45.7 | 53.3 | 41.0 | 48.6 | **73.3** | 70.3 |
+| **Overall (5 benchmarks)** | 45.3 | 79.1 | 46.5 | 82.0 | 62.5 | 81.6 | **83.0** | ***84.9*** |
+| BBH | 39.5 | 64.9 | 46.0 | 68.7 | 51.3 | 66.4 | **94.3** | 82.8 |
+| Financial PhraseBank | 36.0 | **95.7** | 53.4 | **94.7** | 86.0 | **96.1** | 77.0 | 84.2 |
+| JudgeBench | 56.6 | 63.1 | 57.4 | 59.4 | 46.9 | 60.6 | **78.6** | ***78.9*** |
+| RAGTruth | 49.1 | **85.6** | 35.9 | **87.7** | 63.8 | **87.4** | 77.3 | ***88.9*** |
+| WinoGrande | 49.2 | 69.0 | 52.2 | 78.8 | 51.0 | 77.4 | **90.7** | 83.3 |
+| JevBench hard (separate) | 36.2 | 46.7 | 45.7 | 57.1 | 41.0 | 48.6 | **73.3** | 70.3 |
 
 **Bold:** the winner of Jeff against Jev in each row. ***Bold italic:*** AutoJev-27B where it is the best of all models
-in the row (on RAGTruth, tied with Jeff-Qwen3.5-2B); it is shown for reference, since the head-to-head comparison is
-with Jev. The published Jev and AutoJev figures were measured on a different sample of the same benchmarks. Jeff's
+in the row; it is shown for reference, since the head-to-head comparison is
+with Jev. The Qwen columns are v1.1; Jeff-Gemma4-E2B is v1.0. The published Jev and AutoJev figures were measured on a different sample of the same benchmarks. Jeff's
 overall score comes from classification and grounding, where it matches or beats the large models; on the
 reasoning-heavy benchmarks (BBH, JudgeBench, JevBench) it stays well below them, as you would expect at this size.
 
 ## Games: a zero-shot test
+
+*Measured with v1.0 of the Jeff models.*
 
 To test zero-shot performance on tasks unlike anything in the benchmarks, we had Jeff play three games. Games aren't
 the ideal zero-shot test, since a game's state isn't typical unstructured data; but they are a common, and fun, way to
@@ -160,32 +167,29 @@ from raw text to probabilities:
 - **Ask independent questions together** in one request.
 - **Fine-tune it if zero-shot isn't enough.** A voice-navigation fine-tune on ~11k app-specific examples took about half
   an hour on one GPU and moved held-out accuracy from 31.7% to 95.8%, at about 40 ms per decision on an M4 Max:
-  `autojev-train --initial-checkpoint <jeff> --epochs 1 ...`.
+  `jeff-train --initial-checkpoint <jeff> --epochs 1 ...`.
 - **Pick the size for the job.** For fast option picking the 0.8B is the sweet spot: the 2B is more cautious and plays
   the games worse, despite scoring higher on the benchmarks.
 
 ## Train your own
 
 ```bash
-uv run autojev-mix ...          # build the training set (public data, synthetic data, leak filter)
+uv run jeff-mix ...          # build the training set (public data, synthetic data, leak filter)
 scripts/train.sh RUN data/mix/public.jsonl data/mix 5e-6 40 Qwen/Qwen3.5-0.8B <revision> --epochs 1
-uv run autojev-evaluate --data data/panel.jsonl --local --checkpoint checkpoints/RUN/selected --output runs/eval/RUN.json
+uv run jeff-evaluate --data data/panel.jsonl --local --checkpoint checkpoints/RUN/final --output runs/eval/RUN.json
 ```
 
 The full pipeline (synthetic data from a local teacher, leak filter, learning-rate sweeps, dashboard) is described in
 [scripts/train_all.sh](https://github.com/firelex/jeff/blob/main/scripts/train_all.sh), and every training source with its licence in [docs/data-sources.md](https://github.com/firelex/jeff/blob/main/docs/data-sources.md). Training recipe: full-weight fine-tuning, one epoch, batches of 256, cross-entropy over the
-option letters, then one fitted temperature for calibration; checkpoints are chosen on a development set, never on the
-benchmark panel. At least half of each training family follows the panel's layout conventions (formats only; no panel
+option letters, then one fitted temperature for calibration. From v1.1 we use the checkpoint at the end of the epoch; the benchmark
+panel is never used for selection or tuning. At least half of each training family follows the panel's layout conventions (formats only; no panel
 item is ever trained on).
 
 ## Caveats
 
-- **At most 26 options per question, for now.** Options are coded A–Z, then AA, AB, and so on. The largest
-  training question had 19 options, so the released models never learned to pick a two-letter code: an option
-  in position 27 or later is effectively never chosen, whatever it says. The server therefore refuses questions
-  with more than 26 options; shortlist longer lists first. Within 26, Jeff-Qwen3.5-0.8B picked the right city
-  every time in our list-lookup check (10, 19 and 26 options), while Jeff-Gemma4-E2B managed 70%, 62% and 55%.
-  Retrained models that handle up to 255 options are in progress. Thanks to @puhuk for the report ([#1](https://github.com/firelex/jeff/issues/1)).
+- **Option limits.** The v1.1 Qwen models are trained on lists of 20 to 254 options and accept up to 254.
+  Jeff-Gemma4-E2B is still v1.0: it picks reliably among at most 26, and the server refuses longer lists for it;
+  shortlist first.
 - **Small models don't reason.** Expect fast, calibrated choices between the options you describe, not multi-step
   reasoning. At 0.8B–2B parameters this holds for every model, not just Jeff.
 - **Jeff-2B is a weaker game player than Jeff-0.8B.** The untrained 2B already appears more risk-averse than the
@@ -196,6 +200,26 @@ item is ever trained on).
 - **Prompts matter.** Jev's own Doom prompt (a raw bearing number plus an aiming rule) does not work for any of our
   models; options that state consequences in words do.
 - **English and text only.**
+
+## Changelog
+
+**v1.1 (29 September 2026): Jeff-Qwen3.5-0.8B and Jeff-Qwen3.5-2B**
+- **Long lists.** v1.0 never picked an option past the 26th, because no training question had more than 19 options
+  (thanks to @puhuk for the report, [#1](https://github.com/firelex/jeff/issues/1)). v1.1 adds 32,000 training questions
+  with 20 to 254 options, built in code ([`src/jeff/longlists.py`](src/jeff/longlists.py)) and from the MASSIVE and
+  CLINC150 training splits, and accepts up to 254 options. Long-list test (20 to 254 items): 0.8B 40.3% → 94.7%, 2B 95.2%.
+- **Final checkpoint.** v1.1 publishes the checkpoint at the end of the epoch. Picking the one with the lowest
+  development loss, as v1.0 did, chose an early, less settled checkpoint in the new runs and cost 1–2 points.
+- **Calibration** error 0.049 → 0.021 (0.8B) and 0.028 → 0.026 (2B). JevBench hard tier: 47.6% → 46.7% (0.8B),
+  53.3% → 57.1% (2B).
+- **Benchmarks:** 0.8B unchanged at 79.1%; 2B 83.1% → 82.0%, mostly on JudgeBench (64.6% → 59.4%), a small benchmark
+  where models of this size sit near chance. The 2B no longer edges past Jev's published 83.0%.
+- **Not zero-shot any more:** MASSIVE and CLINC150 (their training splits are now in the training data).
+- **Serving-only install** (`uv sync --no-default-groups`), thanks to @WavesMan ([#2](https://github.com/firelex/jeff/issues/2)).
+- Jeff-Gemma4-E2B was not retrained and stays at v1.0. v1.0 of every model stays available on Hugging Face as revision
+  `v1.0`.
+
+**v1.0 (28 September 2026):** first release: Jeff-Qwen3.5-0.8B, Jeff-Qwen3.5-2B and Jeff-Gemma4-E2B.
 
 ## History
 

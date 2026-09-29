@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
-# The recipe behind the released models: build the training set from every source, check lengths, then train and score
-# the 0.8B, 2B and Gemma 4 E2B students (ONE epoch each), each scored on the panel, JevBench, documents and voice sets.
+# The recipe behind the released models (v1.1): build the training set from every source, then train and score the
+# 0.8B and 2B students (ONE epoch each), each scored at its FINAL checkpoint on the panel, JevBench, documents, voice and
+# long-list sets. (Jeff-Gemma4-E2B is v1.0: same recipe without the long lists, lr 2e-5.)
 #
 # Usage: scripts/train_all.sh SYNTHETIC_JSONL
 #   SYNTHETIC_JSONL: synthetic questions from `jeff-generate run` + `jeff-generate finalize` (needs JEFF_TEACHER_URL).
 # Inputs built beforehand (see README): data/extra (jeff-extra), data/benchmark-train (jeff-extra --only ragtruth_train
 # winogrande_train), data/documents, data/voice, data/probability (jeff-probability), data/panel.jsonl (jeff-panel),
-# data/jevbench-hard.jsonl (jeff-jevbench). Learning rates: 5e-6 (0.8B), 1e-5 (2B), 2e-5 (Gemma), from short sweeps.
+# data/jevbench-hard.jsonl (jeff-jevbench), data/longlists (python -m jeff.longlists) and a held-out long-list test in
+# data/longlists-test (python -m jeff.longlists with another seed). Learning rates: 5e-6 (0.8B), 1e-5 (2B), 2e-5 (Gemma), from short sweeps.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 synthetic=${1:?usage: scripts/train_all.sh SYNTHETIC_JSONL}
 data=data/mix
 uv run jeff-mix --public-only --panel-layout --adversarial --escape --extra data/extra/train.jsonl \
   data/benchmark-train/train.jsonl data/documents/train.jsonl data/voice/train.jsonl data/probability/train.jsonl \
-  "$synthetic" --size 1000000 --out "$data"
+  data/longlists/train.jsonl "$synthetic" --size 1000000 --out "$data"
 score() {  # RUN
-  local ckpt=checkpoints/$1/selected
+  local ckpt=checkpoints/$1/final  # the end of the epoch (v1.1 onwards)
   uv run jeff-evaluate --data data/panel.jsonl --output "runs/eval/$1-calibrated.json" --local --checkpoint "$ckpt" --batch-size 16
   uv run jeff-evaluate --data data/jevbench-hard.jsonl --output "runs/eval/jevbench/$1-calibrated.json" --local --checkpoint "$ckpt" --batch-size 4
   uv run jeff-evaluate --data data/documents/check.jsonl --output "runs/eval/documents/$1-calibrated.json" --local --checkpoint "$ckpt" --batch-size 8
   uv run jeff-evaluate --data data/voice/test.jsonl --output "runs/eval/voice/$1-calibrated.json" --local --checkpoint "$ckpt" --batch-size 8
+  uv run jeff-evaluate --data data/longlists-test/test.jsonl --output "runs/eval/longlists/$1-calibrated.json" --local --checkpoint "$ckpt" --batch-size 4
 }
 while read -r tag model revision lr; do
   run=$tag-$(date +%Y%m%d-%H%M)

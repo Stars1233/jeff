@@ -37,6 +37,21 @@ and JevBench), and near-duplicates are removed.
 | ragtruth_train | [wandb/RAGTruth-processed](https://huggingface.co/datasets/wandb/RAGTruth-processed) | MIT |
 | winogrande_train | [allenai/winogrande](https://huggingface.co/datasets/allenai/winogrande) | CC BY |
 
+
+## Long-list questions (v1.1)
+
+32,250 questions with 20 to 254 options, so the models learn to answer past the 26th option. Built by
+[`src/jeff/longlists.py`](../src/jeff/longlists.py):
+
+| Part | Rows | Source | Licence |
+|---|---|---|---|
+| Made-up lists (destinations, contacts, products, orders, meeting slots, teams, settings) | 20,000 | built in code; all names invented | own |
+| MASSIVE intents, all 60 as options | 6,000 | [Amazon MASSIVE 1.1](https://amazon-massive-nlu-dataset.s3.amazonaws.com/amazon-massive-dataset-1.1.tar.gz), English training split | CC BY 4.0 |
+| CLINC150 intents, all 150 as options (out-of-scope messages answered with "None of these") | 6,250 | [clinc/clinc_oos](https://huggingface.co/datasets/clinc/clinc_oos) "plus" training split, revision 155b9c710419136e17307b80d0a13e68cd46b4ec | CC BY 3.0 |
+
+Only training splits are used; the test splits of MASSIVE and CLINC150 are never trained on. Results on those two data
+sets are therefore not zero-shot for v1.1.
+
 ## Long documents
 
 Long real documents with human labels, as decision rows: ContractNLI (non-disclosure agreements, CC BY 4.0), ConditionalQA (UK government guidance pages; release under BSD-2, pages under the Open Government Licence) and CUAD (commercial contracts annotated by lawyers for clause types, CC BY 4.0).
