@@ -133,7 +133,8 @@ once.
 alt="Jeff-Qwen3.5-0.8B-Chess playing 100 blitz games at once; the featured game ends in checkmate"></a>
 
 100 games at once in real time; the featured game is its one win of the 100, a nine-move checkmate. The full video,
-results and training details are on the [model card](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess).
+results and training details are on the [model card](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess). The code to
+reproduce it, step by step, is in [examples/chess](examples/chess).
 
 ## Speed and size
 
