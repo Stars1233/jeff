@@ -22,7 +22,7 @@ spot-check the quality of a sample of the synthetic data.
 **Independent project.** Jeff uses the same request format as Jev, but it is not affiliated with or endorsed by TypeSafe, the
 makers of Jev. Our training code starts from the open-source [AutoJev](https://github.com/denis-pplx/autojev) recipe.
 
-**Models on Hugging Face:** [Jeff-Qwen3.5-0.8B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B) · [Jeff-Qwen3.5-2B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-2B) · [Jeff-Gemma4-E2B](https://huggingface.co/mstrasser/Jeff-Gemma4-E2B)
+**Models on Hugging Face:** [Jeff-Qwen3.5-0.8B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B) · [Jeff-Qwen3.5-2B](https://huggingface.co/mstrasser/Jeff-Qwen3.5-2B) · [Jeff-Gemma4-E2B](https://huggingface.co/mstrasser/Jeff-Gemma4-E2B) · chess fine-tune: [Jeff-Qwen3.5-0.8B-Chess](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess)
 
 ## Quick start
 
@@ -113,6 +113,27 @@ uv run python -m jeff.games --game doom --player jeff --criteria situation --url
 uv run python -m jeff.games --game frogger --player jeff --criteria outcomes --url http://127.0.0.1:8765 --out runs/games/frogger.json
 uv run python -m jeff.games --game pacman --player rule --out runs/games/pacman-rule.json
 ```
+
+## Fine-tuning example: chess
+
+When zero-shot isn't enough, fine-tune. As a worked example we trained Jeff-Qwen3.5-0.8B on 600,000 Lichess positions,
+labelled by Stockfish, in about 3½ hours on one GPU. On 1,000 held-out chess puzzles:
+
+| Model | Puzzles solved |
+|---|---|
+| Qwen3.5-0.8B, untrained | 6.2% |
+| Jeff-Qwen3.5-0.8B, zero-shot (no chess training) | 15.5% |
+| **[Jeff-Qwen3.5-0.8B-Chess](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess)** | **55.8%** |
+
+It is not a strong player: about 1,000 Elo with no search, and it loses to Stockfish's weakest setting. The point is
+speed. Each move is one forward pass in tens of milliseconds, so one GPU keeps up with about 600 human blitz games at
+once.
+
+<a href="https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess"><img src="assets/previews/chess-game63.gif" width="720"
+alt="Jeff-Qwen3.5-0.8B-Chess playing 100 blitz games at once; the featured game ends in checkmate"></a>
+
+100 games at once in real time; the featured game is its one win of the 100, a nine-move checkmate. The full video,
+results and training details are on the [model card](https://huggingface.co/mstrasser/Jeff-Qwen3.5-0.8B-Chess).
 
 ## Speed and size
 
